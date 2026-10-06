@@ -26,9 +26,6 @@ producer = KafkaProducer(
 
 )
 
-AI = mastodon.timeline_hashtag(hashtag="AI", limit=1)
-premier_toot = AI[0]                            # 1er niveau : un toot dans la liste
-pprint(premier_toot)
 
 dernier_id = None
 
@@ -37,11 +34,16 @@ while True:
         toots = mastodon.timeline_hashtag("AI", since_id=dernier_id)
 
         for toot in toots:
-                    producer.send('mastodon_stream', {'account': toot["account"]["username"], "status": toot["id"], "content": toot["content"], 
-                                        "language": toot["language"],"favourites_count": toot["favourites_count"],
-                                        "reblogs_count": toot["reblogs_count"],"created_at": toot["created_at"].isoformat(),
-                                        "hashtags": [tag["name"] for tag in toot["tags"]],})
-
+            producer.send("mastodon_stream", {
+                "id": toot["id"],
+                "created_at": toot["created_at"].isoformat(),
+                "username": toot["account"]["username"],
+                "content": toot["content"],
+                "language": toot["language"],
+                "hashtags": [tag["name"] for tag in toot["tags"]],
+                "favourites_count": toot["favourites_count"],
+                "reblogs_count": toot["reblogs_count"],
+            })
 
         if toots:
             dernier_id = toots[0]["id"]
