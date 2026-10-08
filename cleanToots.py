@@ -1,3 +1,18 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# --- CORRECTION DU BUG WINDOWS / JAVA ---
+# Supprime JAVA_HOME de la session s'il est corrompu pour forcer la détection automatique
+if 'JAVA_HOME' in os.environ:
+    del os.environ['JAVA_HOME']
+
+# Correction Hadoop
+hadoop_path = os.path.join(os.getcwd(), 'hadoop')
+os.environ['HADOOP_HOME'] = hadoop_path
+os.environ['PATH'] = os.path.join(hadoop_path, 'bin') + os.pathsep + os.environ.get('PATH', '')
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import (
     col, from_json, to_timestamp, regexp_replace, length, window, avg, count
@@ -6,13 +21,14 @@ from pyspark.sql.types import (
     StructType, StructField, StringType, IntegerType, ArrayType
 )
 
-# Connexion PostgreSQL (conteneur Docker)
-JDBC_URL = "jdbc:postgresql://localhost:5432/mastodon_db"
+# 2. Connexion PostgreSQL avec IP directe et identifiants en dur
+JDBC_URL = "jdbc:postgresql://127.0.0.1:5433/mastodon_db"
 JDBC_PROPS = {
     "user": "mastodon",
     "password": "mastodon",
     "driver": "org.postgresql.Driver",
 }
+
 spark = (
     SparkSession.builder
     .appName("Mastodon_Streaming")
@@ -49,6 +65,7 @@ schema = StructType([
     StructField("favourites_count", IntegerType()),
     StructField("reblogs_count", IntegerType()),
 ])
+
 # 2. Parsing : binaire -> texte -> colonnes
 toots = (
     df.selectExpr("CAST(value AS STRING) AS json")
@@ -98,7 +115,6 @@ def write_append(table):
         batch_df.write.jdbc(JDBC_URL, table, mode="append", properties=JDBC_PROPS)
     return _write
 
-
 def write_overwrite(table):
     def _write(batch_df, batch_id):
         (
@@ -108,8 +124,12 @@ def write_overwrite(table):
         )
     return _write
 
+# Forcer la création des dossiers pour éviter le crash Windows
+os.makedirs("checkpoints/toots", exist_ok=True)
+os.makedirs("checkpoints/toots_per_hour", exist_ok=True)
+os.makedirs("checkpoints/avg_length_per_user", exist_ok=True)
 
-# Toots nettoyés : ajoutés au fur et à mesure (données historiques pour la partie 3)
+# Toots nettoyés : ajoutés au fur et à mesure
 q_toots = (
     toots_filtered.writeStream
     .foreachBatch(write_append("toots"))
@@ -117,7 +137,7 @@ q_toots = (
     .start()
 )
 
-# Agrégations : mode complete = résultat entier recalculé, la table est remplacée
+# Agrégations : mode complete = résultat entier recalculé
 q_per_hour = (
     toots_per_hour.writeStream
     .outputMode("complete")

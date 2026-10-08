@@ -1,2 +1,6 @@
 .env
 .myenv
+data/
+hadoop/
+.venv/
+modele_sentiment/

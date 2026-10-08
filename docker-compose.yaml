@@ -26,9 +26,11 @@ services:
     image: postgres:18
     container_name: postgres-dev
     environment:
-      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_USER: mastodon
+      POSTGRES_PASSWORD: mastodon
+      POSTGRES_DB: mastodon_db
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
 

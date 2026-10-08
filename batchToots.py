@@ -1,3 +1,18 @@
+import os
+# Définir le chemin vers le dossier hadoop local
+hadoop_path = os.path.join(os.getcwd(), 'hadoop')
+os.environ['HADOOP_HOME'] = hadoop_path
+
+# Ajouter le dossier bin au PATH de Windows
+os.environ['PATH'] = os.path.join(hadoop_path, 'bin') + os.pathsep + os.environ.get('PATH', '')
+
+
+
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 import time
 
 from pyspark.sql import SparkSession
@@ -10,7 +25,7 @@ from pyspark.sql.window import Window
 X_MIN_TOOTS = 2
 
 # Connexion PostgreSQL (conteneur Docker)
-JDBC_URL = "jdbc:postgresql://localhost:5432/mastodon_db"
+JDBC_URL = "jdbc:postgresql://127.0.0.1:5432/mastodon_db"
 JDBC_PROPS = {
     "user": "mastodon",
     "password": "mastodon",
