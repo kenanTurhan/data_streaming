@@ -3,6 +3,11 @@ load_dotenv()
 
 
 import os
+
+# --- CORRECTION DU BUG WINDOWS / JAVA ---
+if 'JAVA_HOME' in os.environ:
+    del os.environ['JAVA_HOME']
+
 # 1. Définir le chemin vers le dossier hadoop
 hadoop_path = os.path.join(os.getcwd(), 'hadoop')
 os.environ['HADOOP_HOME'] = hadoop_path
@@ -96,7 +101,7 @@ db_password = "mastodon"
 db_name = "mastodon_db"
 
 # Utilisation de 127.0.0.1 au lieu de localhost pour corriger le routage Windows
-db_url = f"jdbc:postgresql://127.0.0.1:5432/{db_name}"
+db_url = f"jdbc:postgresql://127.0.0.1:5433/{db_name}"
 
 db_properties = {
     "user": db_user,
