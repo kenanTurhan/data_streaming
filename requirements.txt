@@ -1,0 +1,12 @@
+pyspark==4.2.0          
+python-dotenv==1.2.3
+
+Mastodon.py==2.2.2
+kafka-python==3.0.11
+
+pandas
+matplotlib
+seaborn
+sqlalchemy
+psycopg2-binary
+jupyter
